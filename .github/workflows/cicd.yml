@@ -5,7 +5,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: moviecatalog
+  ECR_REPOSITORY: gitlab-project
 
 jobs:
   build-and-push:
