@@ -44,3 +44,15 @@ jobs:
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$SHORT_SHA
+
+      - name: Set cluster context
+        run: |
+          aws eks update-kubeconfig \
+            --name cicd-practice-cluster \
+            --region us-east-2 \
+    
+      - name: Install helm chart
+        run: |
+          helm upgrade cicd-practice \
+            -f values.yaml \
+    

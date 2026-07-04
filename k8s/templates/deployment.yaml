@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: moviecatalog
+  name: moviecatalog
+  namespace: {{ .Values.namespace }}
+  resourceVersion: "47282"
+  uid: 33e83129-4f1f-4fd7-8402-4700b94dc076
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: moviecatalog
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: moviecatalog
+    spec:
+      containers:
+      - image: 151634275520.dkr.ecr.us-east-2.amazonaws.com/gitlab-project:1.0
+        imagePullPolicy: Always
+        name: gitlab-project
+        ports:
+        - containerPort: {{ .Values.containerPort }}
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2026-07-04T01:38:31Z"
+    lastUpdateTime: "2026-07-04T01:38:31Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2026-07-04T01:15:51Z"
+    lastUpdateTime: "2026-07-04T02:04:59Z"
+    message: ReplicaSet "moviecatalog-6644dbbdcc" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 5
+  readyReplicas: 1
+  replicas: 1
+  terminatingReplicas: 0
+  updatedReplicas: 1
