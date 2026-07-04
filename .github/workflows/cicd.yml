@@ -33,9 +33,7 @@ jobs:
         run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: |
-          docker build --platform linux/amd64
-            -t $ECR_REPOSITORY:$SHORT_SHA .
+        run: docker build --platform linux/amd64 -t $ECR_REPOSITORY:$SHORT_SHA .
       
       - name: Tag image ECR
         run: |
