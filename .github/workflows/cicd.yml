@@ -70,7 +70,7 @@ jobs:
         run: |
           helm upgrade --install cicd-practice ./k8s \
             -n dev \
-            -f k8s/values-dev.yaml \
+            -f k8s/dev-values.yaml \
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }}
 
   deploy-staging:
@@ -95,7 +95,7 @@ jobs:
         run: |
           helm upgrade --install cicd-practice ./k8s \
             -n staging \
-            -f k8s/values-staging.yaml \
+            -f k8s/staging-values.yaml \
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }}
 
   deploy-prod:
@@ -120,6 +120,6 @@ jobs:
         run: |
           helm upgrade --install cicd-practice ./k8s \
             -n prod \
-            -f k8s/values-prod.yaml \
+            -f k8s/prod-values.yaml \
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }}
     
