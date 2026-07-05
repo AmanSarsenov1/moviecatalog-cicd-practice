@@ -3,14 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'Dockerfile'
-      - 'webpack.*.js'
+      - maingi
   workflow_dispatch:
 
 env:
