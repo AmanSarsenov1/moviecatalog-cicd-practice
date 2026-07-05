@@ -6,9 +6,6 @@ metadata:
   name: moviecatalog-svc
   namespace: {{ .Values.namespace }}
 spec:
-  clusterIP: 10.100.184.100
-  clusterIPs:
-  - 10.100.184.100
   externalTrafficPolicy: Cluster
   internalTrafficPolicy: Cluster
   ipFamilies:
