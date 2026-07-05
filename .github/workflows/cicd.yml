@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: moviecatalog
+  ECR_REPOSITORY: gitlab-project
   EKS_CLUSTER: cicd-practice-cluster
 
 permissions:
