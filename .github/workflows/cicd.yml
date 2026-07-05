@@ -53,6 +53,5 @@ jobs:
     
       - name: Install helm chart
         run: |
-          helm upgrade cicd-practice \
-            -f values.yaml \
+          helm upgrade --install cicd-practice ./k8s -f values.yaml
     
