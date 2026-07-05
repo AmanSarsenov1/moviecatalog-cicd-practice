@@ -5,8 +5,6 @@ metadata:
     app: moviecatalog
   name: moviecatalog
   namespace: {{ .Values.namespace }}
-  resourceVersion: "47282"
-  uid: 33e83129-4f1f-4fd7-8402-4700b94dc076
 spec:
   progressDeadlineSeconds: 600
   replicas: {{ .Values.replicas }}
@@ -39,23 +37,3 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
-status:
-  availableReplicas: 1
-  conditions:
-  - lastTransitionTime: "2026-07-04T01:38:31Z"
-    lastUpdateTime: "2026-07-04T01:38:31Z"
-    message: Deployment has minimum availability.
-    reason: MinimumReplicasAvailable
-    status: "True"
-    type: Available
-  - lastTransitionTime: "2026-07-04T01:15:51Z"
-    lastUpdateTime: "2026-07-04T02:04:59Z"
-    message: ReplicaSet "moviecatalog-6644dbbdcc" has successfully progressed.
-    reason: NewReplicaSetAvailable
-    status: "True"
-    type: Progressing
-  observedGeneration: 5
-  readyReplicas: 1
-  replicas: 1
-  terminatingReplicas: 0
-  updatedReplicas: 1
