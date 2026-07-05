@@ -1,21 +1,27 @@
-name: CI/CD
+name: Build and Deploy
+
 on:
-  push: 
-      branches: [main]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: gitlab-project
+  ECR_REPOSITORY: moviecatalog
+  EKS_CLUSTER: cicd-practice-cluster
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-sha.outputs.short_sha }}
 
-    permissions:
-      id-token: write
-      contents: read
-
-    steps: 
+    steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -24,34 +30,96 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::151634275520:role/GHA-trust-role
           aws-region: ${{ env.AWS_REGION }}
-    
-      - name: Login to ECR
+
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set short SHA
-        run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        id: set-sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
-        run: docker build --platform linux/amd64 -t $ECR_REPOSITORY:$SHORT_SHA .
-      
-      - name: Tag image ECR
-        run: |
-          docker tag $ECR_REPOSITORY:$SHORT_SHA \
-            ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$SHORT_SHA
-        
-      - name: Push image
-        run: |
-          docker push \
-            ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$SHORT_SHA
+        run: docker build --platform linux/amd64 -t $ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }} .
+
+      - name: Tag image for ECR
+        run: docker tag $ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }} ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }}
+
+      - name: Push image to ECR
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }}
+
+  deploy-dev:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::151634275520:role/GHA-trust-role
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Set cluster context
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+      - name: Deploy to dev
         run: |
-          aws eks update-kubeconfig \
-            --name cicd-practice-cluster \
-            --region us-east-2 \
-    
-      - name: Install helm chart
+          helm upgrade --install cicd-practice ./k8s \
+            -n dev \
+            -f k8s/values-dev.yaml \
+            --set image.tag=${{ needs.build-and-push.outputs.image_tag }}
+
+  deploy-staging:
+    needs: [build-and-push, deploy-dev]
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::151634275520:role/GHA-trust-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set cluster context
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+      - name: Deploy to staging
         run: |
-          helm upgrade --install cicd-practice ./k8s -f ./k8s/values.yaml
+          helm upgrade --install cicd-practice ./k8s \
+            -n staging \
+            -f k8s/values-staging.yaml \
+            --set image.tag=${{ needs.build-and-push.outputs.image_tag }}
+
+  deploy-prod:
+    needs: [build-and-push, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::151634275520:role/GHA-trust-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set cluster context
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+      - name: Deploy to prod
+        run: |
+          helm upgrade --install cicd-practice ./k8s \
+            -n prod \
+            -f k8s/values-prod.yaml \
+            --set image.tag=${{ needs.build-and-push.outputs.image_tag }}
     
