@@ -1,4 +1,5 @@
 replicas: 1
 namespace: default
 containerPort: 80
-tag: latest
+image:
+  tag: latest

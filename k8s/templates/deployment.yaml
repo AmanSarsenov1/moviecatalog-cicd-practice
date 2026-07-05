@@ -23,7 +23,7 @@ spec:
         app: moviecatalog
     spec:
       containers:
-      - image: "151634275520.dkr.ecr.us-east-2.amazonaws.com/gitlab-project:{{ .Values.tag }}"
+      - image: "151634275520.dkr.ecr.us-east-2.amazonaws.com/gitlab-project:{{ .Values.image.tag }}"
         imagePullPolicy: Always
         name: gitlab-project
         ports:
