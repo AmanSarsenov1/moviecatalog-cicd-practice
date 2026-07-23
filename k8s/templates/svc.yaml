@@ -6,8 +6,6 @@ metadata:
   name: moviecatalog-svc
   namespace: {{ .Values.namespace }}
 spec:
-  externalTrafficPolicy: Cluster
-  internalTrafficPolicy: Cluster
   ipFamilies:
   - IPv4
   ipFamilyPolicy: SingleStack
