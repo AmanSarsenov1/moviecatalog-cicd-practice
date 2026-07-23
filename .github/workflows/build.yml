@@ -11,6 +11,7 @@ on:
       - 'package-lock.json'
       - 'Dockerfile'
       - 'webpack.*.js'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 env:
