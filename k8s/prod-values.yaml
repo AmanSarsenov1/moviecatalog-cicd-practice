@@ -1,2 +1,2 @@
 namespace: prod
-replicas: 3
+replicas: 2
