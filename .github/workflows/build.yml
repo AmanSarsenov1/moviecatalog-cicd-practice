@@ -1,0 +1,55 @@
+name: Build and Push
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: gitlab-project
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-sha.outputs.short_sha }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::151634275520:role/GHA-trust-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set short SHA
+        id: set-sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: docker build --platform linux/amd64 -t $ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }} .
+
+      - name: Tag image for ECR
+        run: docker tag $ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }} ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }}
+
+      - name: Push image to ECR
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ steps.set-sha.outputs.short_sha }}
+
+  call-deploy:
+    needs: build-and-push
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image_tag: ${{ needs.build-and-push.outputs.image_tag }}
+    secrets: inherit
