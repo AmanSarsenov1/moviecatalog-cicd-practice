@@ -20,4 +20,4 @@ spec:
   selector:
     app: moviecatalog
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
